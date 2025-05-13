@@ -7,6 +7,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using Il2CppAssets.Scripts.Unity;
+using BTD_Mod_Helper.Api.ModOptions;
 
 [assembly: MelonInfo(typeof(DialogLib.DialogLib), ModHelperData.Name, ModHelperData.Version, ModHelperData.Author)]
 [assembly: MelonGame("Ninja Kiwi", "BloonsTD6")]
@@ -20,6 +21,11 @@ public class DialogLib : BloonsTD6Mod
         AudioManager.mod = this;
         soundRandom = new(ModHelperData.Name.GetHashCode());
     }
+
+    public static readonly ModSettingDouble wordSpeed = new(0.1)
+    {
+        description = "Seconds per word. Decreasing the value will cause words to appear faster."
+    };
 
     static bool playingSound = false;
 

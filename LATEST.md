@@ -1,1 +1,1 @@
-When you push a tag to GitHub, the contents of this file will become your release message
+Increase default word speed and make it changeable in settings.

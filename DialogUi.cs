@@ -61,7 +61,7 @@ namespace DialogLib.Ui
     [RegisterTypeInIl2Cpp]
     public class DialogUi : MonoBehaviour
     {
-        float timePerWord = 0.15f;
+        float timePerWord = 0.1f;
 
         public static DialogUi instance { get; private set; }
 
