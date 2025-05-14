@@ -1,1 +1,1 @@
-Increase default word speed and make it changeable in settings.
+Fix ui not working with multiple rounds and add example dialog.

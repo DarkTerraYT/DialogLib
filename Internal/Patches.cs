@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Il2CppAssets.Scripts.Unity.Bridge;
+using BTD_Mod_Helper;
 
 namespace DialogLib.Internal
 {
@@ -39,16 +40,12 @@ namespace DialogLib.Internal
         }
     }
 
-    [HarmonyPatch(typeof(UnityToSimulation), nameof(UnityToSimulation.StartRound))]
-    internal static class UnityToSimulation_StartRound
-    {
-        [HarmonyPostfix]
-        public static void Postfix(UnityToSimulation __instance) 
-        {
-            if (DialogUi.instance != null)
-            {
-                DialogUi.instance.QueueForRound(__instance.GetCurrentRound());
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(UnityToSimulation), nameof(UnityToSimulation.StartRound))]
+    //internal static class UnityToSimulation_StartRound
+    //{
+    //    [HarmonyPostfix]
+    //    public static void Postfix(UnityToSimulation __instance) 
+    //    {
+    //    }
+    //}
 }

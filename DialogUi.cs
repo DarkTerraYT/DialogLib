@@ -13,6 +13,7 @@ using DialogLib.Internal;
 using Il2CppAssets.Scripts.Unity;
 using Il2CppInterop.Runtime.Attributes;
 using System;
+using BTD_Mod_Helper;
 
 namespace DialogLib.Ui
 {
@@ -61,14 +62,13 @@ namespace DialogLib.Ui
     [RegisterTypeInIl2Cpp]
     public class DialogUi : MonoBehaviour
     {
-        float timePerWord = 0.1f;
+        float timePerWord = DialogLib.WordSpeed;
 
         public static DialogUi instance { get; private set; }
 
         ModHelperPanel mainPanel;
 
         Dictionary<int, Queue<Dialog>> QueuedDialogPerRound = [];
-        Queue<Dialog> FromRound(int round) => QueuedDialogPerRound[round];
 
         Queue<Dialog> currentQueue;
         Dialog? currentDialog;
@@ -95,6 +95,7 @@ namespace DialogLib.Ui
             currentDialog = null;
             skip = false;
             canGoToNext = false;
+            currentQueue = null;
         }
 
         void Start()
@@ -156,6 +157,7 @@ namespace DialogLib.Ui
 
         public void QueueForRound(int round)
         {
+            ModHelper.Log<DialogLib>("Wow");
             currentDialog?.OnNext?.Invoke();
             if (currentQueue != null && currentQueue.Count > 0)
             {
@@ -164,13 +166,19 @@ namespace DialogLib.Ui
                     var dialog = currentQueue.Dequeue();
                     dialog.OnThis?.Invoke();
                     dialog.OnNext?.Invoke();
+                    ModHelper.Log<DialogLib>(currentQueue.Count);
                 }
+                currentQueue = null;
             }
+            mainPanel.SetActive(false);
+            ModHelper.Log<DialogLib>(round.ToString());
             if (QueuedDialogPerRound.ContainsKey(round))
             {
                 currentQueue = QueuedDialogPerRound[round];
+                ModHelper.Log<DialogLib>(QueuedDialogPerRound[round].Count.ToString() + ": " + currentQueue.Count.ToString());
                 var dialog = currentQueue.Dequeue();
 
+                close = false;
                 ShowDialog(dialog);
             }
         }
@@ -185,13 +193,10 @@ namespace DialogLib.Ui
             if (close) 
             {   
                 close = false;
+                ModHelper.Msg<DialogLib>("Closing");
                 yield break;
             }
 
-            if(mainPanel == null)
-            {
-                yield return new WaitForEndOfFrame();
-            }
             mainPanel.SetActive(true);
 
             name.SetText(dialog.CharacterName);
@@ -238,20 +243,26 @@ namespace DialogLib.Ui
                     }
                 }
             }
+            ModHelper.Msg<DialogLib>("Finish");
 
             canGoToNext = true;
         }
 
-        public void AddToDialogQueue(IEnumerable<Dialog> Dialogs)
+        public void AddToDialogQueue(IEnumerable<Dialog> dialogs)
         {
-            foreach (var dialog in Dialogs)
+            foreach (var dialog in dialogs)
             {
-                QueuedDialogPerRound.TryAdd(dialog.Round, new());
+                QueuedDialogPerRound.TryAdd(dialog.Round, []);
 
                 var queue = QueuedDialogPerRound[dialog.Round];
-
                 queue.Enqueue(dialog);
+
+                ModHelper.Log<DialogLib>(dialog.Round.ToString() + ": " + queue.Count.ToString());
             }
+        }
+        public void AddToDialogQueue(params Dialog[] dialogs)
+        {
+            AddToDialogQueue((IEnumerable<Dialog>)dialogs);
         }
 
         public static void CreateInstance()
