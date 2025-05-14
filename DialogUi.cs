@@ -17,7 +17,7 @@ using BTD_Mod_Helper;
 
 namespace DialogLib.Ui
 {
-    internal enum VoiceType
+    public enum VoiceType
     {
         Low,
         Medium,
@@ -30,21 +30,21 @@ namespace DialogLib.Ui
 
     public struct Dialog
     {
-        public Dialog(string name, string message, string portrait, int round/*, VoiceType voice = VoiceType.Medium*/)
+        public Dialog(string name, string message, string portrait, int round, VoiceType voice = VoiceType.Medium)
         {
             CharacterName = name;
             Text = message;
             PortraitGUID = portrait;
             Round = round;
-            Voice = VoiceType.Medium;
+            Voice = voice;
         }
-        public Dialog(string name, string message, SpriteReference portrait, int round/*, VoiceType voice = VoiceType.Medium*/)
+        public Dialog(string name, string message, SpriteReference portrait, int round, VoiceType voice = VoiceType.Medium)
         {
             CharacterName = name;
             Text = message;
             PortraitGUID = portrait.guidRef;
             Round = round - 1;
-            Voice = VoiceType.Medium;
+            Voice = voice;
         }
 
         public string CharacterName;
