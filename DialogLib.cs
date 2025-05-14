@@ -71,11 +71,7 @@ public class DialogLib : BloonsTD6Mod
     static System.Random soundRandom;
     internal static void PlayRandomDialogSound(VoiceType voice)
     {
-        // Disable as of now due to being buggy.
-
-        /*List<AudioClip> clips = AudioManager.SoundsByType[voice];
-        var clip = clips[soundRandom.Next(clips.Count)];
+        AudioClip clip = AudioManager.SoundsByName[$"DialogSound.{voice.ToString()}.{soundRandom.Next(3)}"];;
         Game.instance.audioFactory.PlaySoundFromUnity(clip, "FX");
-        MelonCoroutines.Start(SoundCoroutine(AudioManager.AudioClipLength[clip]));*/
     }
 }
