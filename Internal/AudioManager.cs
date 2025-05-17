@@ -37,7 +37,6 @@ namespace DialogLib.Internal
                 {
                     clips.Add(obj.Cast<AudioClip>());
                 }
-                mod.LoggerInstance.Msg($"{obj.name} is type {obj.TypeName()}");
             }
             return clips;
         }
@@ -51,7 +50,6 @@ namespace DialogLib.Internal
                 foreach(var clip in GetClipsInBundle("dialogsounds"))
                 {
                     SoundsByName[clip.name] = clip;
-                    mod.LoggerInstance.Msg(clip.name);
                     VoiceType type = Enum.GetValues<VoiceType>().ToList().Find(e => e.ToString() == clip.name.Split(".")[^2]);
                     var reference = new AudioClipReference(clip.name);
                     __instance.audioClipHandles[reference] = Addressables.Instance.ResourceManager.CreateCompletedOperation(clip, "");

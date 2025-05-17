@@ -4,12 +4,10 @@ using DialogLib;
 using DialogLib.Internal;
 using DialogLib.Ui;
 using UnityEngine;
-using System.Collections.Generic;
 using System.Collections;
 using Il2CppAssets.Scripts.Unity;
 using BTD_Mod_Helper.Api.ModOptions;
 using BTD_Mod_Helper.Api;
-using static MelonLoader.MelonLogger;
 using Il2CppAssets.Scripts.Unity.UI_New.InGame;
 
 [assembly: MelonInfo(typeof(DialogLib.DialogLib), ModHelperData.Name, ModHelperData.Version, ModHelperData.Author)]
@@ -29,7 +27,6 @@ public class DialogLib : BloonsTD6Mod
     {
         if (DialogUi.instance != null)
         {
-            ModHelper.Msg<DialogLib>("Dialog UI is not null!");
             DialogUi.instance.QueueForRound(InGame.instance.bridge.GetCurrentRound());
         }
         else
@@ -44,7 +41,7 @@ public class DialogLib : BloonsTD6Mod
         {
             if (DialogUi.instance != null)
             {
-                DialogUi.instance.AddToDialogQueue(new Dialog("Test 1", "This is a test message. As you can see the words slowly show.", ModContent.GetSpriteReference(this, "Icon"), 1), new("Test 2", "The names can also change. So can the portraits.", ModContent.GetSpriteReference(this, "Icon"), 2), new("Test 3", "It also works on multiple rounds as obviously seen.", ModContent.GetSpriteReference(this, "Icon"), 3), new("Test 4", "You can also...", ModContent.GetSpriteReference(this, "Icon"), 4), new("Test 4", "...Have multiple messages!", ModContent.GetSpriteReference(this, "Icon"), 4), new("Test 5", "That is really all for now. I will add voices later.", ModContent.GetSpriteReference(this, "Icon"), 5));
+                DialogUi.instance.AddToDialogQueue(new Dialog("Test 1", "This is a test message. As you can see the words slowly show.", ModContent.GetSpriteReference(this, "Icon"), 1, VoiceType.TenorMale), new("Test 2", "The names can also change. So can the portraits.", ModContent.GetSpriteReference(this, "Icon"), 2), new("Test 3", "It also works on multiple rounds as obviously seen.", ModContent.GetSpriteReference(this, "Icon"), 3), new("Test 4", "You can also...", ModContent.GetSpriteReference(this, "Icon"), 4), new("Test 4", "...Have multiple messages!", ModContent.GetSpriteReference(this, "Icon"), 4), new("Test 5", "That is really all for now. I will add voices later.", ModContent.GetSpriteReference(this, "Icon"), 5));
             }
         }
     }

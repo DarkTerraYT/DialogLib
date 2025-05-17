@@ -14,6 +14,8 @@ using Il2CppAssets.Scripts.Unity;
 using Il2CppInterop.Runtime.Attributes;
 using System;
 using BTD_Mod_Helper;
+using HarmonyLib;
+using Il2CppAssets.Scripts.Unity.Bridge;
 
 namespace DialogLib.Ui
 {
@@ -71,6 +73,7 @@ namespace DialogLib.Ui
         Dictionary<int, Queue<Dialog>> QueuedDialogPerRound = [];
 
         Queue<Dialog> currentQueue;
+        Queue<Dialog> cachedQueue;
         Dialog? currentDialog;
 
         ModHelperText text;
@@ -157,29 +160,43 @@ namespace DialogLib.Ui
 
         public void QueueForRound(int round)
         {
-            ModHelper.Log<DialogLib>("Wow");
-            currentDialog?.OnNext?.Invoke();
-            if (currentQueue != null && currentQueue.Count > 0)
-            {
-                while (currentQueue.Count > 0)
-                {
-                    var dialog = currentQueue.Dequeue();
-                    dialog.OnThis?.Invoke();
-                    dialog.OnNext?.Invoke();
-                    ModHelper.Log<DialogLib>(currentQueue.Count);
-                }
-                currentQueue = null;
-            }
-            mainPanel.SetActive(false);
-            ModHelper.Log<DialogLib>(round.ToString());
             if (QueuedDialogPerRound.ContainsKey(round))
             {
-                currentQueue = QueuedDialogPerRound[round];
-                ModHelper.Log<DialogLib>(QueuedDialogPerRound[round].Count.ToString() + ": " + currentQueue.Count.ToString());
-                var dialog = currentQueue.Dequeue();
+                Dialog dialog;
 
-                close = false;
-                ShowDialog(dialog);
+                currentDialog?.OnNext?.Invoke();
+                if (currentQueue != null && currentQueue.Count > 0)
+                {
+                    while (currentQueue.Count > 0)
+                    {
+                        dialog = currentQueue.Dequeue();
+                        dialog.OnThis?.Invoke();
+                        dialog.OnNext?.Invoke();
+                    }
+                    currentQueue = null;
+                }
+                currentQueue = QueuedDialogPerRound[round];
+                cachedQueue = new(currentQueue);
+                if (currentQueue.Count > 0)
+                {
+                    dialog = currentQueue.Dequeue();
+
+                    close = false;
+                    ShowDialog(dialog);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(UnityToSimulation), nameof(UnityToSimulation.Continue))]
+        static class UnityToSimulation_Continue
+        {
+            [HarmonyPostfix]
+            public static void Postfix()
+            {
+                if(instance != null)
+                {
+                    instance.currentQueue = new(instance.cachedQueue);
+                }
             }
         }
 
@@ -193,7 +210,6 @@ namespace DialogLib.Ui
             if (close) 
             {   
                 close = false;
-                ModHelper.Msg<DialogLib>("Closing");
                 yield break;
             }
 
@@ -243,7 +259,6 @@ namespace DialogLib.Ui
                     }
                 }
             }
-            ModHelper.Msg<DialogLib>("Finish");
 
             canGoToNext = true;
         }
@@ -256,8 +271,6 @@ namespace DialogLib.Ui
 
                 var queue = QueuedDialogPerRound[dialog.Round];
                 queue.Enqueue(dialog);
-
-                ModHelper.Log<DialogLib>(dialog.Round.ToString() + ": " + queue.Count.ToString());
             }
         }
         public void AddToDialogQueue(params Dialog[] dialogs)
