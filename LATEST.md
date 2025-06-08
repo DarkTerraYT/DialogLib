@@ -1,1 +1,1 @@
-Fix ui not working with multiple rounds and add example dialog.
+Add custom voice and ui support, as well as create an xml documentation.
