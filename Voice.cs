@@ -53,7 +53,7 @@ namespace DialogLib
         /// </summary>
         public void Play()
         {
-            if (soundGUIDs.Length > 0)
+            if (soundGUIDs != null && soundGUIDs.Length > 0)
             {
                 DialogLib.PlayRandomDialogSound(this);
             }
