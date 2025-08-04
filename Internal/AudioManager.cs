@@ -1,4 +1,5 @@
 ﻿using BTD_Mod_Helper;
+using BTD_Mod_Helper.Api;
 using BTD_Mod_Helper.Api.Internal;
 using BTD_Mod_Helper.Extensions;
 using CommandLine;
@@ -86,7 +87,7 @@ namespace DialogLib.Internal
             public static void Postfix(AudioFactory __instance)
             {
                 factory = __instance;
-                LoadClips(GetClipsInBundle(mod.IDPrefix, "dialogsounds"));
+                LoadClips(GetAllCips(DialogLib.GetBundles(mod)));
             }
         }
     }

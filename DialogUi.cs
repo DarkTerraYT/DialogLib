@@ -1,21 +1,23 @@
-﻿using BTD_Mod_Helper.Api.Components;
+﻿using BTD_Mod_Helper;
+using BTD_Mod_Helper.Api;
+using BTD_Mod_Helper.Api.Components;
 using BTD_Mod_Helper.Api.Enums;
 using BTD_Mod_Helper.Extensions;
-using Il2CppAssets.Scripts.Unity.UI_New.InGame;
-using Il2CppNinjaKiwi.Common.ResourceUtils;
-using System.Collections.Generic;
-using System.Collections;
-using UnityEngine;
-using System.Linq;
-using BTD_Mod_Helper.Api;
-using MelonLoader;
 using DialogLib.Internal;
-using Il2CppAssets.Scripts.Unity;
-using Il2CppInterop.Runtime.Attributes;
-using System;
-using BTD_Mod_Helper;
 using HarmonyLib;
+using Il2CppAssets.Scripts.Unity;
 using Il2CppAssets.Scripts.Unity.Bridge;
+using Il2CppAssets.Scripts.Unity.UI_New.InGame;
+using Il2CppInterop.Runtime.Attributes;
+using Il2CppNinjaKiwi.Common;
+using Il2CppNinjaKiwi.Common.ResourceUtils;
+using MelonLoader;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
 
 #pragma warning disable CS0618
 
@@ -24,7 +26,7 @@ namespace DialogLib.Ui
     /// <summary>
     /// All of the voices that come with this mod
     /// </summary>
-    [Obsolete("Replaced by DialogLib.Voice")]
+    [Obsolete("Replaced by DialogLib.Voice, exists for compatability reasons only.")]
     public enum VoiceType
     {
         /// <summary>
@@ -70,46 +72,12 @@ namespace DialogLib.Ui
         /// <param name="portrait">What the character looks like</param>
         /// <param name="round">The round it appears on</param>
         /// <param name="voice">What this character sounds like</param>
-        [Obsolete]
-        public Dialog(string name, string message, string portrait, int round, VoiceType voice)
-        {
-            CharacterName = name;
-            Text = message;
-            PortraitGUID = portrait;
-            Round = round;
-            Voice = Voice.FromType(voice);
-        }
-        /// <summary>
-        /// Create a dialog with the specified name, message, portrait, round, and voice
-        /// </summary>
-        /// <param name="name">The name of the character</param>
-        /// <param name="message">What the character is saying</param>
-        /// <param name="portrait">What the character looks like</param>
-        /// <param name="round">The round it appears on</param>
-        /// <param name="voice">What this character sounds like</param>
-        [Obsolete]
-        public Dialog(string name, string message, SpriteReference portrait, int round, VoiceType voice)
-        {
-            CharacterName = name;
-            Text = message;
-            PortraitGUID = portrait.guidRef;
-            Round = round - 1;
-            Voice = Voice.FromType(voice);
-        }
-        /// <summary>
-        /// Create a dialog with the specified name, message, portrait, round, and voice
-        /// </summary>
-        /// <param name="name">The name of the character</param>
-        /// <param name="message">What the character is saying</param>
-        /// <param name="portrait">What the character looks like</param>
-        /// <param name="round">The round it appears on</param>
-        /// <param name="voice">What this character sounds like</param>
         public Dialog(string name, string message, string portrait, int round, Voice voice)
         {
             CharacterName = name;
             Text = message;
             PortraitGUID = portrait;
-            Round = round;
+            Round = round - 1;
             Voice = voice;
         }
         /// <summary>
@@ -140,7 +108,7 @@ namespace DialogLib.Ui
             CharacterName = name;
             Text = message;
             PortraitGUID = portrait;
-            Round = round;
+            Round = round - 1;
             Voice = Voice.Silent;
         }
         /// <summary>
@@ -155,8 +123,42 @@ namespace DialogLib.Ui
             CharacterName = name;
             Text = message;
             PortraitGUID = portrait.guidRef;
-            Round = round;
+            Round = round - 1;
             Voice = Voice.Silent;
+        }
+        /// <summary>
+        /// Create a dialog with the specified name, message, portrait, round, and voice
+        /// </summary>
+        /// <param name="name">The name of the character</param>
+        /// <param name="message">What the character is saying</param>
+        /// <param name="portrait">What the character looks like</param>
+        /// <param name="round">The round it appears on</param>
+        /// <param name="voice">What this character sounds like</param>
+        [Obsolete]
+        public Dialog(string name, string message, string portrait, int round, VoiceType voice)
+        {
+            CharacterName = name;
+            Text = message;
+            PortraitGUID = portrait;
+            Round = round - 1;
+            Voice = Voice.FromType(voice);
+        }
+        /// <summary>
+        /// Create a dialog with the specified name, message, portrait, round, and voice
+        /// </summary>
+        /// <param name="name">The name of the character</param>
+        /// <param name="message">What the character is saying</param>
+        /// <param name="portrait">What the character looks like</param>
+        /// <param name="round">The round it appears on</param>
+        /// <param name="voice">What this character sounds like</param>
+        [Obsolete]
+        public Dialog(string name, string message, SpriteReference portrait, int round, VoiceType voice)
+        {
+            CharacterName = name;
+            Text = message;
+            PortraitGUID = portrait.guidRef;
+            Round = round - 1;
+            Voice = Voice.FromType(voice);
         }
 
         /// <summary>
@@ -194,6 +196,8 @@ namespace DialogLib.Ui
         /// </summary>
         public int Round { get; }
 
+        public DialogOption[] Options = [];
+
         /// <summary>
         /// What happens when this message is closed
         /// </summary>
@@ -205,19 +209,169 @@ namespace DialogLib.Ui
     }
 
     /// <summary>
+    /// Abstract class for dialog options. Override this to create your own custom options. By default the mod provides <see cref="RedOption"/> and <seealso cref="GreenOption"/>
+    /// </summary>
+    public abstract class DialogOption
+    {
+        /// <summary>
+        /// Name of the button type. By default the type name.
+        /// </summary>
+        public virtual string Name => GetType().Name;
+
+        /// <summary>
+        /// Instance of DialogUi the option will use to access the ui.
+        /// </summary>
+        protected abstract DialogUi dialogUi { get; }
+
+        /// <summary>
+        /// GUID of the sprite of the button
+        /// </summary>
+        public abstract string Sprite { get; }
+
+        /// <summary>
+        /// What text is displayed on the button
+        /// </summary>
+        public abstract string OptionText { get; }
+
+        /// <summary>
+        /// Dialog shown after clicking this option
+        /// </summary>
+        public abstract Queue<Dialog> SequentialDialog { get; set; }
+
+        /// <summary>
+        /// Show the sequential dialog for this option
+        /// </summary>
+        public virtual void Click()
+        {
+            dialogUi.ShowQueue(SequentialDialog);
+        }
+
+        /// <summary>
+        /// Get the button for this option
+        /// </summary>
+        /// <returns></returns>
+        public virtual ModHelperButton Create(out bool addToGroupPanel)
+        {
+            addToGroupPanel = true;
+            var btn = ModHelperButton.Create(new(Name, DialogUi.NextBtnWidth * 1.5f, DialogUi.NextBtnWidth * 1.5f / ModHelperButton.LongBtnRatio), Sprite, new Action(Click));
+            btn.AddText(new("Text", InfoPreset.FillParent), OptionText).EnableAutoSizing(35);
+
+            return btn;
+        }
+    }
+
+    /// <summary>
+    /// <see cref="DialogOption"/> using the sprite <see cref="VanillaSprites.RedBtnLong"/> and default click action
+    /// </summary>
+    public sealed class RedOption : DialogOption
+    {
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override string Sprite => VanillaSprites.RedBtnLong;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        protected override DialogUi dialogUi { get; }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override string OptionText { get; }
+
+        /// <summary>
+        /// Create a RedOption with the following text and dialog queue
+        /// </summary>
+        public RedOption(string text, Queue<Dialog> dialog)
+        {
+            SequentialDialog = dialog;
+            dialogUi = DialogUi.defaultInstanceForOptions;
+            OptionText = text;
+        }
+        /// <summary>
+        /// Create a RedOption with the following text and dialog
+        /// </summary>
+        public RedOption(string text, params Dialog[] dialog)
+        {
+            SequentialDialog = new(dialog);
+            dialogUi = DialogUi.defaultInstanceForOptions;
+            OptionText = text;
+        }
+
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override Queue<Dialog> SequentialDialog { get; set; }
+    }
+
+    /// <summary>
+    /// <see cref="DialogOption"/> using the sprite <see cref="VanillaSprites.GreenBtnLong"/> and default click action
+    /// </summary>
+    public sealed class GreenOption : DialogOption
+    {
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public sealed override string Sprite => VanillaSprites.GreenBtnLong;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        protected override DialogUi dialogUi { get; }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override string OptionText { get; }
+
+        /// <summary>
+        /// Create a GreenOption with the following text and dialog queue
+        /// </summary>
+        public GreenOption(string text, Queue<Dialog> dialog)
+        {
+            SequentialDialog = dialog;
+            dialogUi = DialogUi.defaultInstanceForOptions;
+            OptionText = text;
+        }
+        /// <summary>
+        /// Create a GreenOption with the following text and dialog
+        /// </summary>
+        public GreenOption(string text, params Dialog[] dialog)
+        {
+            SequentialDialog = new(dialog);
+            dialogUi = DialogUi.defaultInstanceForOptions;
+            OptionText = text;
+        }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
+        public override Queue<Dialog> SequentialDialog { get; set; }
+    }
+
+    /// <summary>
     /// UI that handles the dialog, override to make your own dialog. Requires you to make your own create method.
     /// </summary>
     [RegisterTypeInIl2Cpp]
     public class DialogUi : MonoBehaviour
     {
-        float timePerWord = DialogLib.WordSpeed;
+        /// <summary>
+        /// The instance set by default for the dialog options that come with this mod.
+        /// </summary>
+        public static DialogUi defaultInstanceForOptions = instance;
+
+
+        float timePerCharacter = DialogLib.CharacterSpeed;
 
         /// <summary>
         /// Instance of the ui.
         /// </summary>
         public static DialogUi instance { get; private set; }
 
-        ModHelperPanel mainPanel;
+        ///
+        public ModHelperPanel mainPanel;
 
         Dictionary<int, Queue<Dialog>> QueuedDialogPerRound = [];
 
@@ -230,6 +384,19 @@ namespace DialogLib.Ui
         ModHelperText nameText;
         ModHelperButton nextButton;
         ModHelperButton exitButton;
+
+        /// <summary>
+        /// Group where options are placed
+        /// </summary>
+        public ModHelperScrollPanel OptionsGroup;
+        /// <summary>
+        /// Width of the next and close buttons
+        /// </summary>
+        public const float NextBtnWidth = 200;
+        /// <summary>
+        /// Height of the next and close buttons
+        /// </summary>
+        public const float NextBtnHeight = 200;
 
         bool close = false;
 
@@ -254,6 +421,7 @@ namespace DialogLib.Ui
             skip = false;
             canGoToNext = false;
             currentQueue = null;
+            OptionsGroup.ScrollContent.transform.DestroyAllChildren();
         }
 
         /// <summary>
@@ -267,6 +435,7 @@ namespace DialogLib.Ui
             text = transform.GetChild(2).GetComponent<ModHelperText>();
             nextButton = transform.GetChild(3).GetComponent<ModHelperButton>();
             exitButton = transform.GetChild(4).GetComponent<ModHelperButton>();
+            OptionsGroup = transform.GetChild(5).GetComponent<ModHelperScrollPanel>();
 
             nextButton.Button.AddOnClick(() =>
             {
@@ -303,11 +472,9 @@ namespace DialogLib.Ui
         }
 
         /// <summary>
-        /// 
         /// </summary>
         protected bool canGoToNext = false;
         /// <summary>
-        /// 
         /// </summary>
         protected bool skip = false;
 
@@ -323,32 +490,46 @@ namespace DialogLib.Ui
         /// <summary>
         /// Propely show all dialogs for the provided round
         /// </summary>
-        public virtual void QueueForRound(int round)
+        public void QueueForRound(int round)
         {
             if (QueuedDialogPerRound.ContainsKey(round))
             {
-                Dialog dialog;
+                ModHelper.Msg<DialogLib>("not null");
+                ShowQueue(QueuedDialogPerRound[round]);
+            }
+        }
 
-                currentDialog?.OnNext?.Invoke();
-                if (currentQueue != null && currentQueue.Count > 0)
-                {
-                    while (currentQueue.Count > 0)
-                    {
-                        dialog = currentQueue.Dequeue();
-                        dialog.OnThis?.Invoke();
-                        dialog.OnNext?.Invoke();
-                    }
-                    currentQueue = null;
-                }
-                currentQueue = QueuedDialogPerRound[round];
-                cachedQueue = new(currentQueue);
-                if (currentQueue.Count > 0)
+        /// <summary>
+        /// Show a queue of dialogs.
+        /// </summary>
+        /// <param name="queue">Queue in order of dialog shown.</param>
+        [HideFromIl2Cpp]
+        public virtual void ShowQueue(Queue<Dialog> queue)
+        {
+            Dialog dialog;
+
+            currentDialog?.OnNext?.Invoke();
+            if (currentQueue != null && currentQueue.Count > 0)
+            {
+                while (currentQueue.Count > 0)
                 {
                     dialog = currentQueue.Dequeue();
-
-                    close = false;
-                    ShowDialog(dialog);
+                    dialog.OnThis?.Invoke();
+                    dialog.OnNext?.Invoke();
                 }
+                currentQueue = null;
+            }
+            currentQueue = queue;
+            cachedQueue = new(currentQueue);
+
+            ModHelper.Msg<DialogLib>(currentQueue.Count);
+            if (currentQueue.Count > 0)
+            {
+                ModHelper.Msg<DialogLib>("show");
+                dialog = currentQueue.Dequeue();
+
+                close = false;
+                ShowDialog(dialog);
             }
         }
 
@@ -404,45 +585,49 @@ namespace DialogLib.Ui
             portrait.Image.SetSprite(dialog.PortraitGUID);
             text.SetText("");
 
-            nextButton.SetActive(true);
-            exitButton.SetActive(true);
-            if (currentQueue == null || currentQueue.Count == 0)
+            if (dialog.Options == null || dialog.Options.Length == 0)
             {
-                nextButton.SetActive(false);
+                nextButton.SetActive(true);
+                exitButton.SetActive(true);
+                OptionsGroup.SetActive(false);
+                if (currentQueue == null || currentQueue.Count == 0)
+                {
+                    nextButton.SetActive(false);
+                }
+                else
+                {
+                    exitButton.SetActive(false);
+                } 
             }
             else
             {
-                exitButton.SetActive(false);
-            }
-
-            string[] words = dialog.Text.Split(' ');
-            foreach(string word in words)
-            {
-                if(skip)
+                OptionsGroup.SetActive(true);
+                OptionsGroup.ScrollContent.transform.DestroyAllChildren();
+                foreach (var option in dialog.Options)
                 {
-                    text.Text.SetText(dialog.Text);
-                    skip = false;
-                    break;
-                }
-                var nextWord = word.Trim();
-                bool yield = false;
-                if (words.Last() != word)
-                {
-                    nextWord += " ";
-                    yield = true;
-                }
-                text.Text.SetText(text.Text.text + nextWord);
-                DialogLib.PlayRandomDialogSound(dialog.Voice);
-                if (yield)
-                {
-                    yield return new WaitForSeconds(timePerWord);
-                    if (skip)
+                    var btn = option.Create(out bool add);
+                    if (add)
                     {
-                        text.Text.SetText(dialog.Text);
-                        skip = false;
-                        break;
+                        OptionsGroup.AddScrollContent(btn);
                     }
                 }
+            }
+
+            text.Text.SetText(dialog.Text);
+            text.Text.maxVisibleCharacters = 0;
+            for (int i = 0; i < dialog.Text.Length; i++)
+            {
+                if (skip)
+                {
+                    skip = false;
+                    text.Text.maxVisibleCharacters = dialog.Text.Length;
+                    break;
+                }
+                text.Text.maxVisibleCharacters++;
+                if (dialog.Text[i] == '.' || dialog.Text[i] == ' ' && dialog.Text[i - 1] != '.')
+                    dialog.Voice.Play();
+
+                yield return new WaitForSeconds(timePerCharacter);
             }
 
             canGoToNext = true;
@@ -451,19 +636,21 @@ namespace DialogLib.Ui
         /// <summary>
         /// Adds the provided dialogs to the queue
         /// </summary>
+        [HideFromIl2Cpp]
         public virtual void AddToDialogQueue(IEnumerable<Dialog> dialogs)
         {
             foreach (var dialog in dialogs)
             {
-                QueuedDialogPerRound.TryAdd(dialog.Round, []);
 
-                var queue = QueuedDialogPerRound[dialog.Round];
-                queue.Enqueue(dialog);
+                ModHelper.Msg<DialogLib>("add to round " + (dialog.Round + 1).ToString("#,###"));
+                QueuedDialogPerRound.TryAdd(dialog.Round, []);
+                QueuedDialogPerRound[dialog.Round].Enqueue(dialog);
             }
         }
         /// <summary>
         /// Adds the provided dialogs to the queue
         /// </summary>
+        [HideFromIl2Cpp]
         public void AddToDialogQueue(params Dialog[] dialogs)
         {
             AddToDialogQueue((IEnumerable<Dialog>)dialogs);
@@ -480,6 +667,9 @@ namespace DialogLib.Ui
                 return;
             }
 
+
+            ModHelper.Msg<DialogLib>("Create instance");
+
             ModHelperPanel mainPanel = InGame.instance.mapRect.gameObject.AddModHelperPanel(new("DialogUi", 0, -1000, 2000, 600), VanillaSprites.MainBgPanel);
             var image = mainPanel.AddImage(new("Portrait", -725, 0, 450), VanillaSprites.DartMonkey000); 
             var name = mainPanel.AddText(new("Name", -725, 250, 500, 100), "N/A");
@@ -489,9 +679,13 @@ namespace DialogLib.Ui
             text.Text.enableAutoSizing = true;
             text.Text.fontSizeMax = 60;
             text.Text.alignment = Il2CppTMPro.TextAlignmentOptions.TopLeft;
-            var nextButton = mainPanel.AddButton(new("NextBtn", 1000, 0, 200), VanillaSprites.ContinueBtn, new Action(() => { }));
-            var closeButton = mainPanel.AddButton(new("NextBtn", 1000, 0, 200), VanillaSprites.CloseBtn, new Action(() => { }));
+            var nextButton = mainPanel.AddButton(new("NextBtn", 1000, 0, NextBtnWidth, NextBtnHeight), VanillaSprites.ContinueBtn, new Action(() => { }));
+            var closeButton = mainPanel.AddButton(new("NextBtn", 1000, 0, NextBtnWidth, NextBtnHeight), VanillaSprites.CloseBtn, new Action(() => { }));
+            var optionGroup = mainPanel.AddScrollPanel(new("OptionsGroup", 500, -150, 1000, 300), RectTransform.Axis.Horizontal, null, 25, 25);
+            /*optionGroup.RemoveComponent<Mask>();
+            optionGroup.AddComponent<RectMask2D>();*/
             instance = mainPanel.AddComponent<DialogUi>();
+            defaultInstanceForOptions = instance;
         }
     }
 }

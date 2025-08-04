@@ -25,7 +25,7 @@ namespace DialogLib;
 public class DialogLib : BloonsTD6Mod
 {
     /// <summary>
-    /// Loads audio clips from a bundle into <see cref="AudioManager"/> which allows the mod to use them.
+    /// Loads audio clips from a bundle into <see cref="AudioManager"/> which allows the mod to use them. If you're using embedded resources not in a bundle, the clips are automatically loaded.
     /// </summary>
     /// <param name="bundleName">full name of the bundle without the file extension</param>
     public static void LoadClips(string bundleName) 
@@ -33,13 +33,13 @@ public class DialogLib : BloonsTD6Mod
         AudioManager.LoadClips(AudioManager.GetClipsInBundle(bundleName));
     }
     /// <summary>
-    /// Loads audio clips from a bundle into <see cref="AudioManager"/> which allows the mod to use them.
+    /// Loads audio clips from a bundle into <see cref="AudioManager"/> which allows the mod to use them. If you're using embedded resources not in a bundle, the clips are automatically loaded.
     /// </summary>
     /// <param name="modPrefix"><see cref="BloonsMod.IDPrefix"/> of the mod</param>
     /// <param name="bundleName">name of the bundle without the file extension</param>
     public static void LoadClips(string modPrefix, string bundleName) => LoadClips(modPrefix + bundleName);
 
-    static List<AssetBundle> GetBundles(BloonsMod mod)
+    internal static List<AssetBundle> GetBundles(BloonsMod mod)
     {
         List<AssetBundle> bundles = [];
         foreach ((string key, AssetBundle bundle) in ResourceHandler.Bundles)
@@ -54,7 +54,7 @@ public class DialogLib : BloonsTD6Mod
     }
 
     /// <summary>
-    /// Loads audio clips from every bundle from the provided mod into <see cref="AudioManager"/> which allows this mod to use them.
+    /// Loads audio clips from every bundle from the provided mod into <see cref="AudioManager"/> which allows this mod to use them. If you're using embedded resources not in a bundle, the clips are automatically loaded.
     /// </summary>
     /// <param name="mod">Mod that added the bundles</param>
     public static void LoadClips(BloonsMod mod)
@@ -101,8 +101,10 @@ public class DialogLib : BloonsTD6Mod
     {
         if (ShowExample)
         {
+            ModHelper.Msg<DialogLib>("True");
             if (DialogUi.instance != null)
             {
+                ModHelper.Msg<DialogLib>("Instance not null");
                 DialogUi.instance.AddToDialogQueue(
                     new Dialog("Test 1", "This is a test message. As you can see the words slowly show.", ModContent.GetSpriteReference(this, "Icon"), 1),
                     new("Test 2", "The names can also change. So can the portraits.", ModContent.GetSpriteReference(this, "Icon"), 2),
@@ -110,16 +112,17 @@ public class DialogLib : BloonsTD6Mod
                     new("Test 4", "You can also...", ModContent.GetSpriteReference(this, "Icon"), 4),
                     new("Test 4", "...Have multiple messages!",ModContent.GetSpriteReference(this, "Icon"), 4),
                     new("Test 5", "You may also give the dialog a voice, for example this is the provided medium voice", ModContent.GetSpriteReference(this, "Icon"), 5, Voice.Medium),
-                    new("Test 6", "The background cana also be changed", ModContent.GetSpriteReference(this, "Icon"), 6) { BackgroundGUID = VanillaSprites.MainBGPanelBlue},
-                    new("Test 6", "That is all for now.", ModContent.GetSpriteReference(this, "Icon"), 7));
+                    new("Test 6", "The background can also be changed", ModContent.GetSpriteReference(this, "Icon"), 6) { BackgroundGUID = VanillaSprites.MainBGPanelBlue},
+                    new("Test 7", "There are also options. Choose one!", ModContent.GetSpriteReference(this, "Icon"), 7) { Options = [new RedOption("No.", new Dialog("Test 7", "That's not very kind!", ModContent.GetSpriteReference(this, "Icon"), 0)), new GreenOption("Okay", new Dialog("Test 7", "That's very kind!", ModContent.GetSpriteReference(this, "Icon"), 0))] },
+                    new("Test 8", "That is all for now.", ModContent.GetSpriteReference(this, "Icon"), 8));
             }
         }
     }
 
     /// <summary>
-    /// Seconds per word. Decreasing the value will cause words to appear faster.
+    /// Seconds per character. Decreasing the value will cause words to appear faster.
     /// </summary>
-    public static readonly ModSettingDouble WordSpeed = new(0.125)
+    public static readonly ModSettingDouble CharacterSpeed = new(0.025f)
     {
         description = "Seconds per word. Decreasing the value will cause words to appear faster."
     };
@@ -135,7 +138,11 @@ public class DialogLib : BloonsTD6Mod
     static System.Random soundRandom;
     internal static void PlayRandomDialogSound(Voice voice)
     {
-        AudioClip clip = AudioManager.SoundsByName[voice.soundGUIDs[soundRandom.Next(voice.soundGUIDs.Length)]];
-        Game.instance.audioFactory.PlaySoundFromUnity(clip, "FX");
+        if (voice.soundGUIDs != null && voice.soundGUIDs.Length > 0)
+        {
+            AudioClip clip = AudioManager.SoundsByName[voice.soundGUIDs[soundRandom.Next(voice.soundGUIDs.Length)]];
+            Game.instance.audioFactory.PlaySoundFromUnity(clip, "FX");
+            ModHelper.Log<DialogLib>(clip.length);
+        }
     }
 }

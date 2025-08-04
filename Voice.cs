@@ -62,7 +62,7 @@ namespace DialogLib
         /// <summary>
         /// GUIDs of the voices
         /// </summary>
-        public string[] soundGUIDs;
+        public string[] soundGUIDs = [];
 
         /// <summary>
         /// Creates a voice with the provided sounds
@@ -79,7 +79,7 @@ namespace DialogLib
 
             for (int i = 0; i < count; i++)
             {
-                soundGUIDs[i] = $"DialogSound.{baseId}.{count}";
+                soundGUIDs[i] = $"DialogSound.{baseId}.{i}";
             }
         }
 
