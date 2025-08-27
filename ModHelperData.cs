@@ -4,7 +4,7 @@ namespace DialogLib;
 public static class ModHelperData
 {
     public const string WorksOnVersion = "47.0";
-    public const string Version = "3.0.0";
+    public const string Version = "3.0.1";
     public const string Name = "Dialogue Lib";
 
     public const string Description = "Library to make adding dialogue to mods simple. Only add dialogue to the queue after a match has started.";

@@ -33,38 +33,25 @@ namespace DialogLib.Internal
         public static List<AudioClip> GetClipsInBundle(string bundleName)
         {
             List<AudioClip> clips = new();
-            foreach (var obj in ResourceHandler.Bundles[bundleName].LoadAllAssets())
+
+            var bundle = ResourceHandler.Bundles[bundleName];
+
+            foreach (var clip in bundle.LoadAllAssetsAsync<AudioClip>().allAssets)
             {
-                if(obj.IsType<AudioClip>())
-                {
-                    clips.Add(obj.Cast<AudioClip>());
-                }
+                clips.Add(clip.Cast<AudioClip>());
             }
+
             return clips;
         }
-        public static List<AudioClip> GetClipsInBundle(string modPrefix, string bundleName)
-        {
-            List<AudioClip> clips = new();
-            foreach (var obj in ResourceHandler.Bundles[modPrefix + bundleName].LoadAllAssets())
-            {
-                if (obj.IsType<AudioClip>())
-                {
-                    clips.Add(obj.Cast<AudioClip>());
-                }
-            }
-            return clips;
-        }
+
         public static List<AudioClip> GetAllCips(IEnumerable<AssetBundle> bundles)
         {
             List<AudioClip> clips = new();
             foreach (var bundle in bundles)
             {
-                foreach (var obj in bundle.LoadAllAssets())
+                foreach (var clip in bundle.LoadAllAssetsAsync<AudioClip>().allAssets)
                 {
-                    if (obj.IsType<AudioClip>())
-                    {
-                        clips.Add(obj.Cast<AudioClip>());
-                    }
+                    clips.Add(clip.Cast<AudioClip>());
                 }
             }
             return clips;
