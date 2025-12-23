@@ -101,10 +101,8 @@ public class DialogLib : BloonsTD6Mod
     {
         if (ShowExample)
         {
-            ModHelper.Msg<DialogLib>("True");
             if (DialogUi.instance != null)
             {
-                ModHelper.Msg<DialogLib>("Instance not null");
                 DialogUi.instance.AddToDialogQueue(
                     new Dialog("Test 1", "This is a test message. As you can see the words slowly show.", ModContent.GetSpriteReference(this, "Icon"), 1),
                     new("Test 2", "The names can also change. So can the portraits.", ModContent.GetSpriteReference(this, "Icon"), 2),
@@ -142,7 +140,6 @@ public class DialogLib : BloonsTD6Mod
         {
             AudioClip clip = AudioManager.SoundsByName[voice.soundGUIDs[soundRandom.Next(voice.soundGUIDs.Length)]];
             Game.instance.audioFactory.PlaySoundFromUnity(clip, "FX");
-            ModHelper.Log<DialogLib>(clip.length);
         }
     }
 }

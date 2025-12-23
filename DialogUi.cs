@@ -196,6 +196,9 @@ namespace DialogLib.Ui
         /// </summary>
         public int Round { get; }
 
+        /// <summary>
+        /// Options which get displayed in the bottom right corner of the panel which can provide player interaction
+        /// </summary>
         public DialogOption[] Options = [];
 
         /// <summary>
@@ -206,6 +209,16 @@ namespace DialogLib.Ui
         /// What happens when this message is shown
         /// </summary>
         public Action OnThis;
+
+        /// <summary>
+        /// How fast the text appears (<see cref="DialogLib.CharacterSpeed"/> / dialog.TextSpeed)
+        /// </summary>
+        public float TextSpeed = 1;
+
+        /// <summary>
+        /// After how many characters should a voice sound be played
+        /// </summary>
+        public int CharactersPerSound = 3;
     }
 
     /// <summary>
@@ -245,7 +258,7 @@ namespace DialogLib.Ui
         {
             dialogUi.ShowQueue(SequentialDialog);
         }
-
+        
         /// <summary>
         /// Get the button for this option
         /// </summary>
@@ -279,6 +292,11 @@ namespace DialogLib.Ui
         /// <inheritdoc/>
         /// </summary>
         public override string OptionText { get; }
+        
+        /// <summary>
+        /// Additional thing to do on click.
+        /// </summary>
+        public Action OnClick { get; set; }
 
         /// <summary>
         /// Create a RedOption with the following text and dialog queue
@@ -304,6 +322,12 @@ namespace DialogLib.Ui
         /// <inheritdoc/>
         /// </summary>
         public override Queue<Dialog> SequentialDialog { get; set; }
+
+        public override void Click()
+        {
+            base.Click();
+            OnClick?.Invoke();
+        }
     }
 
     /// <summary>
@@ -349,10 +373,21 @@ namespace DialogLib.Ui
         /// <inheritdoc/>
         /// </summary>
         public override Queue<Dialog> SequentialDialog { get; set; }
+        
+        /// <summary>
+        /// Additional thing to do on click.
+        /// </summary>
+        public Action OnClick { get; set; }
+
+        public override void Click()
+        {
+            base.Click();
+            OnClick?.Invoke();
+        }
     }
 
     /// <summary>
-    /// UI that handles the dialog, override to make your own dialog. Requires you to make your own create method.
+    /// UI that handles the dialogue, override to make your own dialogue ui. Requires you to make your own create method.
     /// </summary>
     [RegisterTypeInIl2Cpp]
     public class DialogUi : MonoBehaviour
@@ -494,7 +529,6 @@ namespace DialogLib.Ui
         {
             if (QueuedDialogPerRound.ContainsKey(round))
             {
-                ModHelper.Msg<DialogLib>("not null");
                 ShowQueue(QueuedDialogPerRound[round]);
             }
         }
@@ -522,10 +556,8 @@ namespace DialogLib.Ui
             currentQueue = queue;
             cachedQueue = new(currentQueue);
 
-            ModHelper.Msg<DialogLib>(currentQueue.Count);
             if (currentQueue.Count > 0)
             {
-                ModHelper.Msg<DialogLib>("show");
                 dialog = currentQueue.Dequeue();
 
                 close = false;
@@ -555,6 +587,7 @@ namespace DialogLib.Ui
             yield return new WaitForSeconds(waitTime);
 
             currentDialog = dialog;
+            dialog.OnThis?.Invoke();
 
             if (close) 
             {   
@@ -601,6 +634,8 @@ namespace DialogLib.Ui
             }
             else
             {
+                nextButton.SetActive(false);
+                exitButton.SetActive(false);
                 OptionsGroup.SetActive(true);
                 OptionsGroup.ScrollContent.transform.DestroyAllChildren();
                 foreach (var option in dialog.Options)
@@ -624,10 +659,10 @@ namespace DialogLib.Ui
                     break;
                 }
                 text.Text.maxVisibleCharacters++;
-                if (dialog.Text[i] == '.' || dialog.Text[i] == ' ' && dialog.Text[i - 1] != '.')
+                if(text.Text.maxVisibleCharacters % dialog.CharactersPerSound == 0) //if (dialog.Text[i] == '.' || dialog.Text[i] == ' ' && dialog.Text[i - 1] != '.')
                     dialog.Voice.Play();
 
-                yield return new WaitForSeconds(timePerCharacter);
+                yield return new WaitForSeconds(timePerCharacter / dialog.TextSpeed);
             }
 
             canGoToNext = true;
@@ -642,7 +677,6 @@ namespace DialogLib.Ui
             foreach (var dialog in dialogs)
             {
 
-                ModHelper.Msg<DialogLib>("add to round " + (dialog.Round + 1).ToString("#,###"));
                 QueuedDialogPerRound.TryAdd(dialog.Round, []);
                 QueuedDialogPerRound[dialog.Round].Enqueue(dialog);
             }
@@ -667,9 +701,6 @@ namespace DialogLib.Ui
                 return;
             }
 
-
-            ModHelper.Msg<DialogLib>("Create instance");
-
             ModHelperPanel mainPanel = InGame.instance.mapRect.gameObject.AddModHelperPanel(new("DialogUi", 0, -1000, 2000, 600), VanillaSprites.MainBgPanel);
             var image = mainPanel.AddImage(new("Portrait", -725, 0, 450), VanillaSprites.DartMonkey000); 
             var name = mainPanel.AddText(new("Name", -725, 250, 500, 100), "N/A");
@@ -680,6 +711,7 @@ namespace DialogLib.Ui
             text.Text.fontSizeMax = 60;
             text.Text.alignment = Il2CppTMPro.TextAlignmentOptions.TopLeft;
             var nextButton = mainPanel.AddButton(new("NextBtn", 1000, 0, NextBtnWidth, NextBtnHeight), VanillaSprites.ContinueBtn, new Action(() => { }));
+            nextButton.Image.color= Color.white;
             var closeButton = mainPanel.AddButton(new("NextBtn", 1000, 0, NextBtnWidth, NextBtnHeight), VanillaSprites.CloseBtn, new Action(() => { }));
             var optionGroup = mainPanel.AddScrollPanel(new("OptionsGroup", 500, -150, 1000, 300), RectTransform.Axis.Horizontal, null, 25, 25);
             /*optionGroup.RemoveComponent<Mask>();
